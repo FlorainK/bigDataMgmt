@@ -15,10 +15,8 @@ def main():
     mqtt_broker_uname = config["mqtt_username"]
     topic = config["kafka_topic"]
     kafka_server = config["kafka_server"]
+    schema_regestry_conf = config["schema_regestry_conf"]
 
-    schema_registry_url = "http://localhost:8083"
-
-    schema_regestry_conf = {"url": schema_registry_url}
     schema_registry_client = SchemaRegistryClient(schema_regestry_conf)
     avro_serializer = AvroSerializer(
         schema_registry_client=schema_registry_client,
