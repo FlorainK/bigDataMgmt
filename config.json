@@ -1,0 +1,6 @@
+{
+  "kafka_topic": "myTopic",
+  "kafka_server": "localhost:29092",
+  "mqtt_broker_address": "broker.hivemq.com",
+  "mqtt_username": "awerufabnsd2342SF"
+}

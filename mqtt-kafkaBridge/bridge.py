@@ -1,3 +1,4 @@
+import json
 from uuid import uuid4
 from confluent_kafka import Producer
 from confluent_kafka.serialization import StringSerializer, SerializationContext, MessageField
@@ -7,11 +8,15 @@ import paho.mqtt.client as mqtt
 
 
 def main():
-    mqtt_broker_address = "broker.hivemq.com"
-    mqtt_broker_uname = "awerufabnsd2342SF"
-    topic = "myTopic"
+    with open("../config.json") as json_file:
+        config = json.load(json_file)
+
+    mqtt_broker_address = config["mqtt_broker_address"]
+    mqtt_broker_uname = config["mqtt_username"]
+    topic = config["kafka_topic"]
+    kafka_server = config["kafka_server"]
+
     schema_registry_url = "http://localhost:8083"
-    kafka_server = "localhost:29092"
 
     schema_regestry_conf = {"url": schema_registry_url}
     schema_registry_client = SchemaRegistryClient(schema_regestry_conf)

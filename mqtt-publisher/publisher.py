@@ -6,10 +6,14 @@ import random
 
 
 def main():
-    broker_address = "broker.hivemq.com"
-    client = mqtt.Client(client_id= "awerufabnsd2342SF", clean_session = False)
+    with open("../config.json") as json_file:
+        config = json.load(json_file)
 
-    client.connect(broker_address)
+    mqtt_broker_address = config["mqtt_broker_address"]
+    mqtt_broker_uname = config["mqtt_username"]
+
+    client = mqtt.Client(client_id= "mqtt_broker_uname", clean_session = False)
+    client.connect(mqtt_broker_address)
 
     fin = "FloriansAuto"
 
