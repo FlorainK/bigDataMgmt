@@ -1,60 +1,47 @@
-import json
-from uuid import uuid4
-from confluent_kafka import Producer
-from confluent_kafka.serialization import StringSerializer, SerializationContext, MessageField
-from confluent_kafka.schema_registry import SchemaRegistryClient
-from confluent_kafka.schema_registry.avro import AvroSerializer
 import paho.mqtt.client as mqtt
-
+from kafka import KafkaProducer
+from kafka.admin import KafkaAdminClient, NewTopic
+import json
 
 def main():
     with open("../config.json") as json_file:
         config = json.load(json_file)
 
+    kafka_topic = config["kafka_topic"]
+    kafka_server = config["kafka_server"]
     mqtt_broker_address = config["mqtt_broker_address"]
     mqtt_broker_uname = config["mqtt_username"]
-    topic = config["kafka_topic"]
-    kafka_server = config["kafka_server"]
-    schema_regestry_conf = config["schema_regestry_conf"]
 
-    schema_registry_client = SchemaRegistryClient(schema_regestry_conf)
-    avro_serializer = AvroSerializer(
-        schema_registry_client=schema_registry_client,
-        schema_str='{"type": "record", "name": "myrecord", "fields": [{"name": "f1", "type": "string"}]}',
+    kafka_producer = KafkaProducer(bootstrap_servers=kafka_server)
+    admin_client = KafkaAdminClient(
+        bootstrap_servers=kafka_server,
+        client_id="test"
     )
 
-    string_serializer = StringSerializer("utf_8")
-    producer = Producer({"bootstrap.servers": kafka_server})
-
-    def delivery_report(err, msg):
-        if err is not None:
-            print("Message delivery failed: {}".format(err))
-        else:
-            print("Message delivered to {} [{}]".format(msg.topic(), msg.partition()))
-
-    def on_message(client, userdata, message):
-        producer.poll(0.0)
-        print("message received " ,str(message.payload.decode("utf-8")))
+    def create_kafka_topic(topic):
+        topic_list = []
+        topic_list.append(NewTopic(name=topic, num_partitions=1, replication_factor=1))
         try:
-            data = {"f1": str(message.payload.decode("utf-8"))}
-            producer.produce(
-                topic=topic,
-                on_delivery=delivery_report,
-                key = string_serializer(str(uuid4()), MessageField.KEY),
-                value= avro_serializer(data, SerializationContext(topic, MessageField.VALUE)),
-                ),
-        
-        except Exception as e:
-            print(e)
-        producer.flush()	
-            
-    mqtt_client = mqtt.Client(mqtt_broker_uname, clean_session=False)
-    mqtt_client.on_message= on_message
-    mqtt_client.connect(mqtt_broker_address)
-    mqtt_client.subscribe("DataMgmt", qos=1) 
-    mqtt_client.loop_forever()
+            admin_client.create_topics(new_topics=topic_list, validate_only=False)
+        except:
+            print("Topic creation unsuccessful.")
 
-    producer.flush()
+    # create_kafka_topic(kafka_topic)
+    
+    def on_message(client, userdata, message):
+        print("message received " ,str(message.payload.decode("utf-8")))
+        kafka_producer.send(kafka_topic, str(message.payload.decode("utf-8")).encode("utf-8"))
+        kafka_producer.flush()
+
+
+    client = mqtt.Client(mqtt_broker_uname, clean_session=False)
+    client.on_message=on_message
+    client.connect(mqtt_broker_address)
+    client.subscribe("DataMgmt", qos=1) 
+    client.loop_forever()
+
+
 
 if __name__ == "__main__":
     main()
+
