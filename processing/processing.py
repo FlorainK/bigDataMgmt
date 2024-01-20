@@ -1,8 +1,5 @@
 import faust
 import json
-from confluent_kafka.schema_registry.avro import AvroDeserializer
-from confluent_kafka.serialization import StringDeserializer, SerializationContext, MessageField
-from confluent_kafka.schema_registry import SchemaRegistryClient
 
 def main():
     with open("../config.json") as json_file:
