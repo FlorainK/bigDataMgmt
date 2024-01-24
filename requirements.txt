@@ -1,3 +1,2 @@
-confluent-kafka
 faust-streaming
 kafka-python

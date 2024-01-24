@@ -18,15 +18,6 @@ def main():
         client_id="test"
     )
 
-    def create_kafka_topic(topic):
-        topic_list = []
-        topic_list.append(NewTopic(name=topic, num_partitions=1, replication_factor=1))
-        try:
-            admin_client.create_topics(new_topics=topic_list, validate_only=False)
-        except:
-            print("Topic creation unsuccessful.")
-
-    # create_kafka_topic(kafka_topic)
     
     def on_message(client, userdata, message):
         print("message received " ,str(message.payload.decode("utf-8")))
