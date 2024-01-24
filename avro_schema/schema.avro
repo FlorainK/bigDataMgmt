@@ -1,0 +1,9 @@
+{
+    "type": "record",
+    "name": "telemetryData",
+    "fields": [
+        {"name":"fin", "type":"string},
+        {"name":"zeit", "type":"int"},
+        {"name":"geschwindigkeit", "type":"int"}
+        ]
+}

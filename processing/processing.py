@@ -1,5 +1,8 @@
-import faust
+import io
 import json
+
+import faust
+from avro.io import DatumReader, BinaryDecoder
 
 def main():
     with open("../config.json") as json_file:
@@ -15,10 +18,14 @@ def main():
     app.topic(topic)
 
     @app.agent(topic)
-
     async def process(stream):
         async for event in stream:
-            print(event)
+            bytes_reader = io.BytesIO(event)
+            decoder = BinaryDecoder(bytes_reader)
+            reader = DatumReader()
+
+            data = reader.read(decoder)
+            print(data)
     app.main()
 
 if __name__ == "__main__":

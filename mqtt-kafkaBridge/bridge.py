@@ -1,7 +1,12 @@
+import json
+import io
+
 import paho.mqtt.client as mqtt
 from kafka import KafkaProducer
-from kafka.admin import KafkaAdminClient, NewTopic
-import json
+import avro.schema
+from avro.datafile import DataFileWriter
+from avro.io import DatumWriter
+
 
 def main():
     with open("../config.json") as json_file:
@@ -12,16 +17,20 @@ def main():
     mqtt_broker_address = config["mqtt_broker_address"]
     mqtt_broker_uname = config["mqtt_username"]
 
-    kafka_producer = KafkaProducer(bootstrap_servers=kafka_server)
-    admin_client = KafkaAdminClient(
-        bootstrap_servers=kafka_server,
-        client_id="test"
-    )
+    schema = avro.schema.parse(open("../avro_schema/schema.avsc", "rb").read())
 
-    
+    kafka_producer = KafkaProducer(bootstrap_servers=kafka_server)
+
+    writer = DataFileWriter(open("../avro_schema/schema.avsc", "wb"), DatumWriter(), schema)
+
     def on_message(client, userdata, message):
-        print("message received " ,str(message.payload.decode("utf-8")))
-        kafka_producer.send(kafka_topic, str(message.payload.decode("utf-8")).encode("utf-8"))
+        decoded_message = json.loads(message.payload.decode("utf-8"))
+        print("message received " , decoded_message)
+
+        writer.write(decoded_message, encoder)
+        bytes_writer = io.BytesIO()
+        encoder = avro.io.BinaryEncoder(bytes_writer)
+        kafka_producer.send(kafka_topic, bytes_writer.getvalue())   
         kafka_producer.flush()
 
 
