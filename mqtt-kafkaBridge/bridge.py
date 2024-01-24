@@ -1,5 +1,4 @@
-import json
-import io
+import json, io, os
 
 import paho.mqtt.client as mqtt
 from kafka import KafkaProducer
@@ -16,21 +15,26 @@ def main():
     kafka_server = config["kafka_server"]
     mqtt_broker_address = config["mqtt_broker_address"]
     mqtt_broker_uname = config["mqtt_username"]
+    schema_name = config["schema_name"]
 
-    schema = avro.schema.parse(open("../avro_schema/schema.avsc", "rb").read())
+    with open(f"../avro_schema/{schema_name}") as schema_file:
+        schema = json.load(schema_file)
 
+    schema_parsed = avro.schema.parse(json.dumps(schema))
+    
     kafka_producer = KafkaProducer(bootstrap_servers=kafka_server)
 
-    writer = DataFileWriter(open("../avro_schema/schema.avsc", "wb"), DatumWriter(), schema)
 
     def on_message(client, userdata, message):
         decoded_message = json.loads(message.payload.decode("utf-8"))
         print("message received " , decoded_message)
 
-        writer.write(decoded_message, encoder)
+        writer = DatumWriter(schema_parsed)
         bytes_writer = io.BytesIO()
         encoder = avro.io.BinaryEncoder(bytes_writer)
-        kafka_producer.send(kafka_topic, bytes_writer.getvalue())   
+        writer.write(decoded_message, encoder)
+
+        kafka_producer.send(kafka_topic, key=b'',value = bytes_writer.getvalue())
         kafka_producer.flush()
 
 

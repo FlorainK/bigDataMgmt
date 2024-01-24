@@ -1,0 +1,9 @@
+{
+  "type": "record",
+  "name": "Data",
+  "fields": [
+    { "name": "fin", "type": "string" },
+    { "name": "zeit", "type": "int" },
+    { "name": "geschwindigkeit", "type": "int" }
+  ]
+}
