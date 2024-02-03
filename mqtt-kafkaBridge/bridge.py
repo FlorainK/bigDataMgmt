@@ -15,26 +15,14 @@ def main():
     kafka_server = config["kafka_server"]
     mqtt_broker_address = config["mqtt_broker_address"]
     mqtt_broker_uname = config["mqtt_username"]
-    schema_name = config["schema_name"]
 
-    with open(f"../avro_schema/{schema_name}") as schema_file:
-        schema = json.load(schema_file)
-
-    schema_parsed = avro.schema.parse(json.dumps(schema))
     
     kafka_producer = KafkaProducer(bootstrap_servers=kafka_server)
 
 
     def on_message(client, userdata, message):
-        decoded_message = json.loads(message.payload.decode("utf-8"))
-        print("message received " , decoded_message)
-
-        writer = DatumWriter(schema_parsed)
-        bytes_writer = io.BytesIO()
-        encoder = avro.io.BinaryEncoder(bytes_writer)
-        writer.write(decoded_message, encoder)
-
-        kafka_producer.send(kafka_topic, key=b'',value = bytes_writer.getvalue())
+        print("message received " ,str(message.payload.decode("utf-8")))
+        kafka_producer.send(kafka_topic,value = str(message.payload.decode("utf-8")).encode('utf-8'))
         kafka_producer.flush()
 
 
