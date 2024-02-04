@@ -11,9 +11,12 @@ def main():
     app = faust.App(
         "processing",
         broker=kafka_configs["kafka_server"],
-        topic_partitions=8
+        topic_partitions= kafka_configs["partitions"]
     )
-    topic = app.topic(kafka_configs["topic_name"], partitions=kafka_configs["partitions"], internal = True)
+    topic = app.topic(kafka_configs["topic_name"], 
+                      partitions=kafka_configs["partitions"],
+                      value_type=Car)
+    
     speed_table = app.Table("speed_table", default = int).tumbling(60)
 
 
@@ -21,11 +24,16 @@ def main():
     async def process(stream):
         async for value in stream:
             print(f"Received value: {value}")
-            speed_table['sum'] += value['geschwindigkeit']
+            speed_table['sum'] += value.geschwindigkeit
             speed_table['count'] += 1
 
             print(f"Current sum: {speed_table['sum'].value()}, count: {speed_table['count'].value()}")
     app.main()
+
+class Car(faust.Record):
+    fin: str
+    zeit: str
+    geschwindigkeit: int
 
 if __name__ == "__main__":
     main()
