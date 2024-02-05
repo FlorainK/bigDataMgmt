@@ -1,2 +1,4 @@
 faust-streaming
 kafka-python
+psycopg2
+numpy

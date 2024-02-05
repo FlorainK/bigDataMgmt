@@ -1,6 +1,6 @@
 {
   "kafka_configs": {
-    "topic_name": "myTopic33",
+    "topic_name": "myTopiagfdf43",
     "kafka_server": "localhost:9094",
     "partitions": 8
   },
