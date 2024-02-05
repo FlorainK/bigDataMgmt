@@ -3,6 +3,8 @@ import faust
 from slidingWindow import SlidingWindow
 import psycopg2
 
+from car import Car
+
 def main():
     with open("../config.json") as json_file:
         config = json.load(json_file)
@@ -21,8 +23,8 @@ def main():
 
     speed_sliding_window = SlidingWindow(5, 1)
 
-    postgres_password = os.environ['POSTGRES_PASSWORD']
-    postgres_user = os.environ['POSTGRES_USER']
+    postgres_password = os.environ["POSTGRES_PASSWORD"]
+    postgres_user = os.environ["POSTGRES_USER"]
 
     conn = psycopg2.connect(
         host="localhost",
@@ -32,21 +34,28 @@ def main():
     )
 
 
+    cur = conn.cursor()
+    cur.execute("CREATE SCHEMA IF NOT EXISTS mqtt;")
+    cur.execute("CREATE TABLE IF NOT EXISTS mqtt.messung (id serial PRIMARY KEY, payload jsonb);")
     
     @app.agent(topic)
     async def process(stream):
         async for value in stream:
+            last_value = speed_sliding_window.get_last_value() if speed_sliding_window.get_last_value() else value.geschwindigkeit
             speed_sliding_window.add(value.geschwindigkeit)
-            print(f"Sliding Window: {speed_sliding_window.window}\nAverage: {speed_sliding_window.get_Average()}")
+            value.durchschnittsgeschwindigkeit = speed_sliding_window.get_average()
+            value.beschleunigung = value.geschwindigkeit - last_value
             
-            # cur = conn.cursor()
-            # cur.execute("INSERT INTO mqtt.messung (payload) VALUES (%s::jsonb)", (data,))
-    app.main()
+            if value.beschleunigung < -30: print("Warnung: starkes bremsen erkannt")
+            data_jsonS = value.to_json()
 
-class Car(faust.Record):
-    fin: str
-    zeit: str
-    geschwindigkeit: int
+            cur = conn.cursor()
+            cur.execute("INSERT INTO mqtt.messung (payload) VALUES (%s::jsonb)", (data_jsonS,))
+            conn.commit()
+
+    app.main()
+    cur.close()
+
 
 if __name__ == "__main__":
     main()

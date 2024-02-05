@@ -19,7 +19,7 @@ def main():
     while True:
         kafka_producer.send(kafka_configs["topic_name"],value = json.dumps({"fin":"floriansAuto", "zeit": int(time.time()), "geschwindigkeit": random.randint(5,50)}).encode('utf-8'))
         kafka_producer.flush()
-        time.sleep(1)
+        time.sleep(10)
         i += 1
         if i % 10 == 0: print(f"Sent {i} messages")
 
