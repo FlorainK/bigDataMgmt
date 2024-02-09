@@ -11,7 +11,7 @@ class Car(faust.Record, serializer='json'):
 
     def to_json(self):
         dict  = self.__dict__
-        dict.pop("__evaluated_fields__")
+        dict.pop('__evaluated_fields__')
         return json.dumps(dict)
 
 
