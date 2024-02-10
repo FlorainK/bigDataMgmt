@@ -1,3 +1,5 @@
-fastavro
-confluent-kafka
 faust-streaming
+kafka-python
+psycopg2
+numpy
+paho-mqtt
