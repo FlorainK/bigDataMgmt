@@ -15,4 +15,6 @@ class SlidingWindow():
         return np.average(self.window)
     
     def get_last_value(self):
-        return self.window[-1] if len(self.window) > 0 else None
+        return self.window[-1]\
+            if len(self.window) >\
+            0 else None

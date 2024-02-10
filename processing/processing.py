@@ -35,7 +35,10 @@ def main():
 
     cur = conn.cursor()
     cur.execute('CREATE SCHEMA IF NOT EXISTS mqtt;')
-    cur.execute('CREATE TABLE IF NOT EXISTS mqtt.messung (id serial PRIMARY KEY, payload jsonb);')
+    cur.execute('''CREATE TABLE IF NOT EXISTS mqtt.messung 
+                (messung_id serial PRIMARY KEY, 
+                payload jsonb not null,
+                empfangen TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP);''')
 
     @app.agent(topic)
     async def process(stream):

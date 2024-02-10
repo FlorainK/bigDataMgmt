@@ -31,7 +31,7 @@ def main():
 
         client.publish('DataMgmt', json_data, qos = 1)
         print('published: ' + json_data)
-        time.sleep(1)
+        time.sleep(5)
 
 
 
